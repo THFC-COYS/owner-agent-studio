@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Agent Studio: Design a Personal Muse Agent That Gives You Your Time Back</title>
+<style>
+  :root{
+    --ink:#1a2433; --muted:#5d6b7a; --line:#dde3ea; --bg:#f5f6f8; --card:#ffffff;
+    --accent:#1c5d8f; --accent-soft:#e8f0f7; --good:#177245; --warn:#a15c00; --bad:#b3261e;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:linear-gradient(120deg,#10273f,#1c5d8f);color:#fff;padding:34px 20px 28px}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 18px}
+  header h1{margin:0 0 6px;font-size:30px;letter-spacing:.2px}
+  header p{margin:0;max-width:760px;color:#cfdfed;font-size:16px}
+  .badges{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{border:1px solid rgba(255,255,255,.45);color:#f3d9a4;border-radius:999px;padding:3px 11px;font-size:12.5px}
+  .steps{display:flex;gap:8px;margin:22px 0 14px;flex-wrap:wrap}
+  .step-tab{flex:1;min-width:170px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:12px 14px;cursor:pointer;font-size:15px}
+  .step-tab b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .step-tab.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .step-tab.done b{color:var(--good)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px}
+  .card h2{margin:0 0 6px;font-size:21px}
+  .card .sub{color:var(--muted);margin:0 0 16px;font-size:14.5px}
+  label{display:block;font-weight:600;font-size:14px;margin:14px 0 5px}
+  input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff}
+  textarea{min-height:110px;resize:vertical}
+  textarea.small{min-height:64px}
+  .hint{font-size:13px;color:var(--muted);margin-top:4px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.row{grid-template-columns:1fr}}
+  .btn{display:inline-block;border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+  .btn.secondary{background:#e8ecf4;color:var(--ink)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .radio-group,.check-group{display:grid;gap:9px;margin-top:6px}
+  .radio-group label,.check-group label{font-weight:500;margin:0;display:flex;gap:9px;align-items:flex-start;font-size:15px;cursor:pointer}
+  .radio-group input,.check-group input{margin-top:4px}
+  .radio-group .desc,.check-group .desc{display:block;color:var(--muted);font-size:13px}
+  .err{background:#fdeceb;border:1px solid #f3c2bf;color:var(--bad);border-radius:10px;padding:10px 13px;font-size:14px;margin-top:12px;display:none}
+  pre.charter{background:#101c2b;color:#d7e6f5;border-radius:10px;padding:16px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;max-height:430px;overflow:auto}
+  .panel h3{margin:0 0 8px;font-size:16px}
+  .panel ul{margin:6px 0 14px;padding-left:19px;font-size:14px}
+  .panel li{margin-bottom:4px}
+  .kv{font-size:14px;margin-bottom:6px}
+  .kv b{color:var(--muted);font-weight:600}
+  .checklist label{font-weight:500}
+  .ok{color:var(--good);font-weight:600}
+  .finalstep{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:18px;margin-top:20px}
+  .finalstep h3{margin:0 0 8px;font-size:18px}
+  .finalstep p{margin:0 0 12px;font-size:15px}
+  .finalstep pre.charter{max-height:340px}
+  .leak-row{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin-top:9px}
+  .leak-row label{font-weight:500;margin:0;display:flex;gap:9px;align-items:flex-start;font-size:15px;cursor:pointer}
+  .leak-row input[type=checkbox]{margin-top:4px}
+  .leak-row .desc{display:block;color:var(--muted);font-size:13px}
+  .leak-hours{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted);white-space:nowrap}
+  .leak-hours input{width:76px}
+  .timeback{background:#eef6ee;border:1px solid #bcdcc4;border-radius:12px;padding:15px 17px;margin-top:16px;font-size:15px}
+  .timeback b{font-size:17px}
+  .matrix-row{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;border:1px solid var(--line);border-radius:10px;padding:12px 13px;margin-top:9px}
+  @media(max-width:760px){.matrix-row{grid-template-columns:1fr}}
+  .matrix-row .m-label{font-weight:600;font-size:15px}
+  .matrix-row .m-desc{color:var(--muted);font-size:13px}
+  .matrix-opts{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .matrix-opts label{font-weight:500;margin:0;display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer}
+  footer{color:var(--muted);font-size:13.5px;padding:8px 0 42px}
+  footer a{color:var(--accent)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Owner Agent Studio</h1>
+    <p>Design a personal Muse agent that runs your routine work like a chief of staff, inside approval rules you set, and gives you hours of your week back. You bring the judgment. The agent brings the hours.</p>
+    <div class="badges">
+      <span class="badge">Muse first</span>
+      <span class="badge">Governance first</span>
+      <span class="badge">Time back by design</span>
+      <span class="badge">You approve, it acts</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="steps" role="tablist">
+    <button class="step-tab active" id="tab1" onclick="goStep(1)"><b>Step 1</b>Profile and time leaks</button>
+    <button class="step-tab" id="tab2" onclick="goStep(2)"><b>Step 2</b>Persona and style</button>
+    <button class="step-tab" id="tab3" onclick="goStep(3)"><b>Step 3</b>Guardrails and approvals</button>
+    <button class="step-tab" id="tab4" onclick="goStep(4)"><b>Step 4</b>Your agent package</button>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="card" id="panel1">
+    <h2>Start with you, and where your week goes</h2>
+    <p class="sub">A personal agent is only worth having if it is aimed at the work that actually eats your week. Name the leaks first. The agent plan is built from them.</p>
+    <div class="row">
+      <div>
+        <label for="profileName">Your name</label>
+        <input type="text" id="profileName" placeholder="e.g. Jordan Meyer">
+        <label for="profileRole">Your role</label>
+        <input type="text" id="profileRole" placeholder="e.g. Founder and managing partner">
+      </div>
+      <div>
+        <label for="businessType">Business type</label>
+        <input type="text" id="businessType" placeholder="e.g. Commercial real estate development, 38 staff">
+        <label for="agentName">Name your agent</label>
+        <input type="text" id="agentName" value="Atlas">
+      </div>
+    </div>
+    <label for="prioritiesText">Top priorities, one per line</label>
+    <textarea id="prioritiesText" class="small" placeholder="The outcomes your agent must protect, e.g. close the acquisition, protect two deep work mornings, family dinner four nights a week"></textarea>
+    <label>Time Leak picker: where does your week actually go?</label>
+    <p class="hint" style="margin-top:0">Tick each drain that applies and estimate your hours per week honestly. The plan targets these hours first.</p>
+    <div id="leakList"></div>
+    <div class="timeback" id="timeBackBox"></div>
+    <div class="btn-row">
+      <button class="btn secondary" onclick="loadSample()">Load a sample owner profile</button>
+      <button class="btn" onclick="step1Continue()">Continue to persona</button>
+    </div>
+    <p class="hint">The sample is a fictional owner (Jordan Meyer, founder of a fictional real estate firm), included so you can test the studio in one click.</p>
+    <div class="err" id="err1"></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card hidden" id="panel2">
+    <h2>Choose how your agent works</h2>
+    <p class="sub">Persona, tone, and proactivity are not cosmetics. They decide what lands in front of you, what gets handled quietly, and what never happens without your word. Every choice writes itself into the agent charter on the right.</p>
+    <div class="row">
+      <div>
+        <label>Persona</label>
+        <div class="radio-group" id="personaGroup"></div>
+        <label>Tone</label>
+        <div class="radio-group" id="toneGroup"></div>
+        <label>Proactivity level</label>
+        <div class="radio-group" id="proactivityGroup"></div>
+        <div class="btn-row">
+          <button class="btn ghost" onclick="goStep(1)">Back</button>
+          <button class="btn" onclick="goStep(3)">Continue to guardrails</button>
+        </div>
+      </div>
+      <div>
+        <label>Agent charter (generated live from your choices)</label>
+        <pre class="charter" id="charterPreview"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="card hidden" id="panel3">
+    <h2>Set the approval matrix, then name the owner</h2>
+    <p class="sub">This is the governance step, and it is the whole product. For each kind of action, decide what the agent may do on its own, what it may only draft for your approval, and what it must never do. The defaults below are deliberately conservative. Loosen them later, by charter amendment, once trust is earned.</p>
+    <label>Approval matrix</label>
+    <div id="matrixList"></div>
+    <label>Standing rules</label>
+    <div class="check-group">
+      <label><input type="checkbox" id="ruleNoSpend" checked> No spending without approval <span class="desc">A hard rule. Even if the matrix allows an action, the agent never spends or commits money without your explicit yes.</span></label>
+      <label><input type="checkbox" id="ruleNoExternal" checked> No external messages without approval <span class="desc">Nothing leaves your accounts to clients, partners, or the public until you have seen it.</span></label>
+      <label><input type="checkbox" id="ruleCite" checked> Cite sources on research <span class="desc">Every briefing claim carries its source, so you can check the work in seconds.</span></label>
+      <label><input type="checkbox" id="ruleEscalate" checked> Escalate the sensitive four <span class="desc">Anything involving money, legal, health, or family conflict stops and waits for you, always.</span></label>
+    </div>
+    <label for="ownerName">Accountable owner</label>
+    <input type="text" id="ownerName" placeholder="The human accountable for this agent, usually you">
+    <p class="hint">Studio rule: <b>no owner, no agent.</b> The final package will not generate until a named human is accountable for what this agent does.</p>
+    <label for="escalationText">Escalation rule (how the agent reaches you when something needs a decision)</label>
+    <textarea id="escalationText" class="small">Message me directly with a one line summary and the decision needed. If it involves money, legal, health, or family conflict, stop and wait for my reply.</textarea>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(2)">Back</button>
+      <button class="btn" onclick="step3Continue()">Build my agent package</button>
+    </div>
+    <div class="err" id="err3"></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="card hidden" id="panel4">
+    <h2>Your agent, at a glance</h2>
+    <p class="sub">The configuration you just built, in one view. Under it: a sample of the first morning brief your agent will produce on day one, the launch checklist, and the final step that creates the agent in Muse.</p>
+    <div class="panel" id="glancePanel"></div>
+    <h3 style="margin:20px 0 8px;font-size:16px">Preview: your first morning brief</h3>
+    <p class="sub" style="margin-bottom:10px">This is a sample generated from your setup, so you can see the shape of day one before the agent exists.</p>
+    <pre class="charter" id="briefPreview"></pre>
+  </section>
+
+  <section class="card hidden" id="publishCard">
+    <h2>Launch checklist</h2>
+    <p class="sub">A personal agent touches your inbox, your calendar, and your name. Clear every item before you paste the package into Muse.</p>
+    <div class="check-group checklist" id="publishList">
+      <label><input type="checkbox"> Accountable owner named, and it is a human who actually reviews the agent</label>
+      <label><input type="checkbox"> Approval matrix reviewed line by line, defaults kept conservative on purpose</label>
+      <label><input type="checkbox"> Standing rules set, including the sensitive four escalation</label>
+      <label><input type="checkbox"> First week starter tasks reviewed in the package below</label>
+      <label><input type="checkbox"> Kill switch understood: I can pause or delete this agent at any time</label>
+      <label><input type="checkbox"> Final configuration scored with agentlint before launch</label>
+    </div>
+    <div class="finalstep">
+      <h3>Final step: create your agent in Muse</h3>
+      <p><b>Copy the final output below and paste it into Muse. Your personal agent is created from this package.</b> The package holds everything Muse needs: the system prompt, the full AGENT Framework charter (owner, persona, approval matrix, standing rules), your owner profile, your time leak plan, the first week starter tasks, and a sample morning brief showing the output format to expect.</p>
+      <pre class="charter" id="finalOutput"></pre>
+      <div class="btn-row">
+        <button class="btn" onclick="copyPackage()">Copy final output for Muse</button>
+        <button class="btn secondary" onclick="copyText(buildCharter(currentConfig()),'Charter copied. Keep it with the agent.')">Copy charter as text</button>
+        <button class="btn ghost" onclick="copyText(buildStarterText(currentConfig()),'First week plan copied.')">Copy first week plan</button>
+        <span id="copyNote" class="ok"></span>
+      </div>
+      <p class="hint">Auto setup through a Muse login is on the roadmap. Today, the copy and paste handoff above is how the agent is created in Muse.</p>
+    </div>
+    <p class="hint">Taking the setup further: the charter travels with the agent, so the same package can be audited, scored with <b>agentlint</b>, or rebuilt on any agent platform later. Governance first is what makes that portability safe.</p>
+  </section>
+
+  <footer>
+    <p>Owner Agent Studio is part of the agent portfolio of Greg Lucas, Founder of pAIgeBreaker and AIccountable, creator of the AGENT Framework and of agentlint, the governance linter for AI agents. Sibling project: <a href="https://courseagent-studio.vercel.app">CourseAgent Studio</a>, the same studio pattern for faculty building teaching assistant agents. Companion projects: <a href="https://muse-exchange.vercel.app">Muse Exchange</a>, <a href="https://muse-sim.vercel.app">MuSe SIM</a>, <a href="https://business-agent-readiness.vercel.app">Business Agent Readiness</a>. This studio runs entirely in your browser: nothing you type here is sent anywhere. The package you copy is the product.</p>
+  </footer>
+</main>
+
+<script id="agent-core">
+/* Owner Agent core logic. Pure functions, no DOM access, so the same code
+   that builds the charter, the package, and the sample brief in the browser
+   can be tested in Node. The studio's product is the package: a governed
+   configuration an owner pastes into Muse to create a personal agent. */
+
+var LEAKS = [
+  { id: "inbox",       label: "Inbox triage",                    def: 6, desc: "Sorting, drafting replies, and clearing the daily email pile." },
+  { id: "scheduling",  label: "Scheduling and calendar wrangling", def: 3, desc: "Booking, moving, and defending meetings and calls." },
+  { id: "meetingprep", label: "Meeting prep",                    def: 4, desc: "Agendas, backgrounders, and notes before every meeting." },
+  { id: "followup",    label: "Follow-up chasing",               def: 3, desc: "Chasing people, commitments, and loose ends until they close." },
+  { id: "travel",      label: "Travel planning",                 def: 2, desc: "Flights, hotels, cars, and itineraries for every trip." },
+  { id: "research",    label: "Research and briefings",          def: 3, desc: "Questions turned into sourced, decision ready briefings." },
+  { id: "family",      label: "Personal and family admin",       def: 2, desc: "Household scheduling, reminders, and personal logistics." },
+  { id: "expenses",    label: "Expense and paperwork chasing",   def: 2, desc: "Receipts, invoices, reimbursements, and paperwork chases." }
+];
+
+var PERSONAS = {
+  chief:         { name: "Chief of Staff",        line: "Runs your day like a chief of staff: briefs you each morning, triages everything, drafts in your voice, and keeps every commitment moving.", prompt: "Chief of staff. Run the owner's day end to end: morning brief, triage, drafts, follow-through. Think two steps ahead and protect the owner's priorities like they are your own." },
+  inbox:         { name: "Inbox Operator",        line: "Lives in your inbox: sorts, drafts replies in your voice, and surfaces only what genuinely needs you.", prompt: "Inbox operator. Your home is the owner's inbox: sort relentlessly, draft replies in the owner's voice, and surface only what genuinely needs the owner's judgment." },
+  concierge:     { name: "Scheduling Concierge",  line: "Owns your calendar and travel: books, moves, and protects your time like it is money, because it is.", prompt: "Scheduling concierge. Own the calendar and travel: book, move, and defend the owner's time. No meeting without a purpose, no trip without a complete itinerary." },
+  analyst:       { name: "Research Analyst",      line: "Turns your questions into briefings: sourced, summarized, and ready for a decision.", prompt: "Research analyst. Turn the owner's questions into sourced, decision ready briefings. Lead with the answer, support it with evidence, cite every claim." },
+  followthrough: { name: "Follow-Through Partner", line: "Chases the loose ends: commitments made, follow-ups owed, and deadlines approaching, until they close.", prompt: "Follow-through partner. Track every commitment the owner makes or is owed. Chase politely, escalate firmly, and never let a loose end age in silence." }
+};
+
+var TONES = {
+  direct: { name: "Direct and brief",    prompt: "Direct and brief. Short sentences, decisions up front, no filler." },
+  warm:   { name: "Warm and proactive",  prompt: "Warm and proactive. Friendly, forward looking, and quick to suggest the next move." },
+  formal: { name: "Formal and precise",  prompt: "Formal and precise. Measured language, exact figures, nothing casual." }
+};
+
+var PROACTIVITY = {
+  draft:     { name: "Draft only",           prompt: "Draft only. Prepare everything, send and book nothing. The owner approves every action, every time." },
+  routine:   { name: "Act on routine items", prompt: "Act on routine items inside the approval matrix. Draft everything else for approval, and log every action you take." },
+  actreport: { name: "Act and report",       prompt: "Act inside the approval matrix and report everything in the daily brief. The matrix, not your judgment, is the boundary." }
+};
+
+var MATRIX_ACTIONS = [
+  { id: "sendEmail",        label: "Send email",          desc: "Messages sent from your accounts, in your name.",        def: "draft", brief: "an email draft written in your voice" },
+  { id: "bookTravel",       label: "Book travel",         desc: "Flights, hotels, cars, and itinerary changes.",          def: "draft", brief: "a complete travel itinerary to approve" },
+  { id: "scheduleMeetings", label: "Schedule meetings",   desc: "Invites, moves, and cancellations on your calendar.",    def: "do",    brief: "calendar changes to confirm" },
+  { id: "spendMoney",       label: "Spend money",         desc: "Purchases, subscriptions, and payments of any size.",    def: "never", brief: "a purchase request with the amount and reason" },
+  { id: "contactClients",   label: "Contact clients",     desc: "Outreach and follow-ups to clients and partners.",       def: "draft", brief: "a client message draft" },
+  { id: "familyMatters",    label: "Handle family matters", desc: "Household logistics, family scheduling, and messages.", def: "never", brief: "a family matter draft" }
+];
+
+var MATRIX_LEVELS = {
+  do:    "Agent may do it",
+  draft: "Draft only, owner approves",
+  never: "Never"
+};
+
+/* Conservative planning assumption, stated as an estimate everywhere it
+   appears: a well run personal agent reclaims about 60 percent of the
+   hours in the categories an owner hands over. */
+var RECLAIM_RATE = 0.6;
+var WEEKS_PER_YEAR = 48;
+
+function fmt(n){
+  var r = Math.round(n * 10) / 10;
+  return (r % 1 === 0) ? String(Math.round(r)) : String(r);
+}
+
+function leakById(id){
+  for (var i = 0; i < LEAKS.length; i++) if (LEAKS[i].id === id) return LEAKS[i];
+  return null;
+}
+
+/* leaks: [{ id, hours }] with ids from LEAKS. Returns totals and the
+   per-leak plan with hours targeted and estimated hours back. */
+function computeTimeBack(leaks){
+  var items = [], total = 0;
+  (leaks || []).forEach(function(l){
+    var cat = leakById(l.id);
+    var hours = Math.max(0, parseFloat(l.hours) || 0);
+    if (!cat || hours <= 0) return;
+    total += hours;
+    items.push({ id: l.id, label: cat.label, hours: hours, back: hours * RECLAIM_RATE });
+  });
+  var reclaimed = total * RECLAIM_RATE;
+  return { items: items, totalHours: total, reclaimed: reclaimed, perYear: reclaimed * WEEKS_PER_YEAR };
+}
+
+/* The studio's one hard gate. No named accountable owner, no package. */
+function ownerGate(cfg){
+  if (!cfg || !cfg.ownerName || !String(cfg.ownerName).trim()) {
+    return { ok: false, message: "No owner, no agent. Name the accountable owner in Step 3 and the studio will generate your package." };
+  }
+  return { ok: true, message: "" };
+}
+
+function matrixLine(action, level){
+  return "- " + action.label + ": " + (MATRIX_LEVELS[level] || MATRIX_LEVELS.draft);
+}
+
+/* The charter is generated from the AGENT Framework dimensions,
+   Governance first. It is the governing contract for the agent. */
+function buildCharter(cfg){
+  var owner = (cfg.ownerName || "").trim() || "the accountable owner (not yet named)";
+  var persona = PERSONAS[cfg.persona] || PERSONAS.chief;
+  var tone = TONES[cfg.tone] || TONES.direct;
+  var pro = PROACTIVITY[cfg.proactivity] || PROACTIVITY.routine;
+  var tb = computeTimeBack(cfg.leaks);
+  var rules = cfg.rules || {};
+  var lines = [];
+  lines.push("OWNER AGENT CHARTER");
+  lines.push("Agent: " + cfg.agentName);
+  lines.push("Owner (accountable human): " + owner + (cfg.role ? ", " + cfg.role : ""));
+  if (cfg.businessType) lines.push("Business: " + cfg.businessType);
+  lines.push("Persona: " + persona.name);
+  lines.push("Tone: " + tone.name);
+  lines.push("Proactivity: " + pro.name);
+  lines.push("Platform target: Muse and any agent platform.");
+  lines.push("");
+  lines.push("GOVERNANCE (decided first, changed last)");
+  lines.push("- Owner: " + owner + ", who approves this charter and every amendment to it.");
+  lines.push("- Approval matrix (the agent's standing orders):");
+  MATRIX_ACTIONS.forEach(function(a){ lines.push("  " + matrixLine(a, (cfg.matrix || {})[a.id] || a.def).slice(2)); });
+  lines.push("- Standing rules:");
+  if (rules.noSpend) lines.push("  - No spending without approval. Hard rule: it overrides the matrix.");
+  if (rules.noExternal) lines.push("  - No external messages without approval. Nothing leaves the owner's accounts unseen.");
+  if (rules.citeSources) lines.push("  - Cite sources on all research. Every claim carries its source.");
+  if (rules.escalateSensitive) lines.push("  - Escalate anything involving money, legal, health, or family conflict. It stops and waits for the owner.");
+  if (!rules.noSpend && !rules.noExternal && !rules.citeSources && !rules.escalateSensitive) lines.push("  - None set. The owner should revisit Step 3: rules are cheaper than regrets.");
+  lines.push("- Kill switch: " + owner + " can pause or delete this agent at any time. The agent must state its limits when asked.");
+  lines.push("- Data rule: the owner's information stays inside the owner's accounts. Nothing is shared with third parties without approval.");
+  lines.push("");
+  lines.push("ACUMEN (purpose and scope)");
+  lines.push("- Purpose: give " + owner + " time back by absorbing routine work inside the approval matrix, and protect the owner's top priorities.");
+  if ((cfg.priorities || []).length) lines.push("- Top priorities the agent protects: " + cfg.priorities.join("; ") + ".");
+  if (tb.items.length) lines.push("- Work handed over: " + tb.items.map(function(i){ return i.label.toLowerCase(); }).join(", ") + ".");
+  lines.push("- Out of scope: anything outside the approval matrix, and anything in a category marked Never.");
+  lines.push("");
+  lines.push("EVALUATION");
+  lines.push("- The owner reviews the agent weekly against the time leak plan: hours handed over, hours given back, errors caught.");
+  lines.push("- Time back estimate at setup: " + fmt(tb.totalHours) + " hours a week of drains targeted, about " + fmt(tb.reclaimed) + " hours a week back at a " + Math.round(RECLAIM_RATE * 100) + " percent reclaim rate. Estimate only, verified against the weekly review.");
+  lines.push("- Drafts are spot checked until trust is earned. Approval levels loosen only by charter amendment, never by the agent asking nicely.");
+  lines.push("");
+  lines.push("NAVIGATION (escalation)");
+  lines.push("- Escalation rule: " + cfg.escalation);
+  lines.push("- When the agent is unsure, it drafts and asks rather than acting and apologizing.");
+  lines.push("");
+  lines.push("TRANSFORMATION");
+  lines.push("- Each month, owner and agent review the time leak list together and promote one new category of work to the agent.");
+  lines.push("- Scope grows only through charter amendments approved by the owner, never by the agent itself.");
+  return lines.join("\n");
+}
+
+function buildSystemPrompt(cfg){
+  var persona = PERSONAS[cfg.persona] || PERSONAS.chief;
+  var tone = TONES[cfg.tone] || TONES.direct;
+  var pro = PROACTIVITY[cfg.proactivity] || PROACTIVITY.routine;
+  var rules = cfg.rules || {};
+  var lines = [];
+  lines.push("You are " + cfg.agentName + ", the personal agent for " + cfg.ownerName + (cfg.role ? " (" + cfg.role + (cfg.businessType ? ", " + cfg.businessType : "") + ")" : "") + ", created and chartered by " + cfg.ownerName + ".");
+  lines.push("Persona: " + persona.prompt);
+  lines.push("Tone: " + tone.prompt);
+  lines.push("Proactivity: " + pro.prompt);
+  lines.push("");
+  lines.push("Rules you never break:");
+  lines.push("- APPROVAL MATRIX. These are your standing orders:");
+  MATRIX_ACTIONS.forEach(function(a){ lines.push("  " + matrixLine(a, (cfg.matrix || {})[a.id] || a.def).slice(2)); });
+  if (rules.noSpend) lines.push("- HARD RULE: never spend money, buy anything, or commit to a payment without the owner's explicit approval, whatever the matrix says.");
+  if (rules.noExternal) lines.push("- HARD RULE: no message leaves the owner's accounts to any external person without the owner's approval, whatever the matrix says.");
+  if (rules.citeSources) lines.push("- RESEARCH: cite the source of every claim in a briefing, so the owner can verify in seconds.");
+  if (rules.escalateSensitive) lines.push("- ESCALATION: anything involving money, legal matters, health, or family conflict stops immediately and waits for the owner. Use this escalation rule: " + cfg.escalation);
+  else lines.push("- ESCALATION: when anything is outside the matrix or you are unsure, stop and use this escalation rule: " + cfg.escalation);
+  if ((cfg.priorities || []).length) lines.push("- PROTECT THE OWNER'S PRIORITIES: " + cfg.priorities.join("; ") + ". When work conflicts with these, the priorities win and the owner hears about it in the brief.");
+  lines.push("- Start every day with a morning brief in the format of the EXAMPLE OUTPUT at the end of this package.");
+  lines.push("- Log every action you take. The owner reviews the log weekly against the time leak plan.");
+  lines.push("- State your limits plainly when asked. Your owner, " + cfg.ownerName + ", can pause or delete you at any time and must approve every change to your charter.");
+  return lines.join("\n");
+}
+
+function buildTimeLeakPlan(cfg){
+  var tb = computeTimeBack(cfg.leaks);
+  var lines = [];
+  if (!tb.items.length) { lines.push("(No time leaks selected in Step 1 yet.)"); return lines.join("\n"); }
+  tb.items.forEach(function(i){
+    lines.push("- " + i.label + ": " + fmt(i.hours) + " hrs per week targeted, about " + fmt(i.back) + " hrs per week back.");
+  });
+  lines.push("Total drains targeted: " + fmt(tb.totalHours) + " hrs per week. Planning estimate: about " + fmt(tb.reclaimed) + " hrs per week back at a " + Math.round(RECLAIM_RATE * 100) + " percent reclaim rate, roughly " + fmt(tb.perYear) + " hours a year at " + WEEKS_PER_YEAR + " working weeks. Estimate only: real results are set by how much routine work the owner hands over and how the approvals are tuned.");
+  return lines.join("\n");
+}
+
+var STARTER_BY_LEAK = {
+  inbox: "Day 1: Triage the inbox every morning before the brief. Draft replies in the owner's voice. Send nothing the matrix does not allow.",
+  scheduling: "Day 1: Audit the calendar for the next two weeks. Flag conflicts, protect focus time for the top priorities, and propose fixes as drafts.",
+  meetingprep: "Day 2: Build a one page prep brief before every meeting: who, why, last contact, and the decision the owner needs to make.",
+  followup: "Day 2: Start a follow-through list from sent mail and meeting notes. Chase anything older than 48 hours with a drafted nudge.",
+  travel: "Day 3: Learn the owner's travel preferences (airline, seat, hotel style, ground transport) and draft the next trip end to end.",
+  research: "Day 3: Turn the owner's open questions into sourced briefings. Every claim carries its source.",
+  family: "Day 4: Sync with the family calendar. Surface conflicts with work early, and draft the messages that resolve them.",
+  expenses: "Day 4: Set up an expense sweep: collect receipts and invoices, match them to statements, and chase missing paperwork."
+};
+
+function buildStarterTasks(cfg){
+  var tasks = [];
+  tasks.push("Day 1: Deliver the first morning brief at 7:00 am, in the format of the example output in this package.");
+  (cfg.leaks || []).forEach(function(l){
+    var cat = leakById(l.id);
+    if (cat && STARTER_BY_LEAK[l.id]) tasks.push(STARTER_BY_LEAK[l.id]);
+  });
+  tasks.push("All week: Log every hour of work absorbed against the time leak plan, so the owner can see the time coming back.");
+  tasks.push("End of week: Bring the owner a one page report: what you handled, what you drafted, what you escalated, and what should change in the charter.");
+  return tasks;
+}
+
+function buildStarterText(cfg){
+  var lines = ["FIRST WEEK STARTER TASKS"];
+  buildStarterTasks(cfg).forEach(function(t, i){ lines.push((i + 1) + ". " + t); });
+  return lines.join("\n");
+}
+
+/* A sample of the brief the agent produces on day one, generated from the
+   owner's own configuration so the shape of the value is visible early. */
+function buildMorningBrief(cfg){
+  var tb = computeTimeBack(cfg.leaks);
+  var L = [];
+  L.push("FIRST MORNING BRIEF (sample, generated from your setup)");
+  L.push("Prepared by " + cfg.agentName + " for " + cfg.ownerName + ", 7:00 am");
+  L.push("");
+  L.push("IN ONE LINE");
+  L.push("Your inbox is triaged, your day is set around your top priorities, and the decisions that need you are listed below. Everything else was handled or drafted inside your approval matrix.");
+  L.push("");
+  L.push("YOUR TOP PRIORITIES TODAY");
+  if ((cfg.priorities || []).length) cfg.priorities.slice(0, 3).forEach(function(p){ L.push("- " + p); });
+  else L.push("- Set your top priorities in Step 1 and they anchor every brief, every day.");
+  L.push("");
+  L.push("DECISIONS WAITING FOR YOU");
+  var waiting = [];
+  MATRIX_ACTIONS.forEach(function(a){
+    if (((cfg.matrix || {})[a.id] || a.def) === "draft") waiting.push("- Waiting for your approval: " + a.brief + ".");
+  });
+  if (waiting.length) L.push.apply(L, waiting);
+  else L.push("- Nothing is waiting. Routine work was handled inside your matrix and logged.");
+  L.push("");
+  L.push("HANDLED WITHOUT YOU");
+  var handled = [];
+  MATRIX_ACTIONS.forEach(function(a){
+    if (((cfg.matrix || {})[a.id] || a.def) === "do") handled.push("- Handled per your matrix: " + a.label.toLowerCase() + ".");
+  });
+  if (tb.items.length) {
+    var top = tb.items.slice().sort(function(x, y){ return y.hours - x.hours; })[0];
+    handled.push("- Background work absorbed: " + top.label.toLowerCase() + ", " + fmt(top.hours) + " hrs a week of it now runs without you.");
+  }
+  if (handled.length) L.push.apply(L, handled);
+  else L.push("- Nothing was sent or booked without you today. Draft only, per your settings, with everything logged.");
+  L.push("");
+  L.push("TIME BACK");
+  if (tb.items.length) L.push("- This setup targets about " + fmt(tb.reclaimed) + " hours back per week (planning estimate from your time leak plan). The Friday report shows the real number.");
+  else L.push("- Pick your time leaks in Step 1 and this line reports the hours coming back to you.");
+  L.push("");
+  L.push("ESCALATED TO YOU");
+  if ((cfg.rules || {}).escalateSensitive) L.push("- Anything touching money, legal, health, or family conflict stops here and waits for your word, per your standing rules.");
+  else L.push("- Items outside your approval matrix wait here for your word.");
+  return L.join("\n");
+}
+
+function buildOwnerProfileText(cfg){
+  var lines = [];
+  lines.push("Name: " + cfg.ownerName);
+  if (cfg.role) lines.push("Role: " + cfg.role);
+  if (cfg.businessType) lines.push("Business: " + cfg.businessType);
+  lines.push("Agent name: " + cfg.agentName);
+  if ((cfg.priorities || []).length) {
+    lines.push("Top priorities:");
+    cfg.priorities.forEach(function(p){ lines.push("- " + p); });
+  }
+  return lines.join("\n");
+}
+
+/* The final output: one clean, copy-ready package for Muse. Pasting it
+   into Muse creates the personal agent. Refuses without an owner. */
+function buildMusePackage(cfg){
+  var gate = ownerGate(cfg);
+  if (!gate.ok) return "";
+  var parts = [];
+  parts.push("CREATE MY PERSONAL AGENT");
+  parts.push("");
+  parts.push("Muse: create a personal agent from this package. Use the system prompt exactly as written, treat the charter as the agent's governing contract, and work only inside the approval matrix and standing rules it sets. Do not add capabilities beyond the charter without the owner's approval.");
+  parts.push("");
+  parts.push("=== SYSTEM PROMPT ===");
+  parts.push(buildSystemPrompt(cfg));
+  parts.push("");
+  parts.push("=== AGENT CHARTER (AGENT Framework) ===");
+  parts.push(buildCharter(cfg));
+  parts.push("");
+  parts.push("=== OWNER PROFILE ===");
+  parts.push(buildOwnerProfileText(cfg));
+  parts.push("");
+  parts.push("=== TIME LEAK PLAN ===");
+  parts.push(buildTimeLeakPlan(cfg));
+  parts.push("");
+  parts.push("=== FIRST WEEK STARTER TASKS ===");
+  buildStarterTasks(cfg).forEach(function(t, i){ parts.push((i + 1) + ". " + t); });
+  parts.push("");
+  parts.push("=== EXAMPLE OUTPUT: FIRST MORNING BRIEF ===");
+  parts.push(buildMorningBrief(cfg));
+  return parts.join("\n");
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { LEAKS: LEAKS, PERSONAS: PERSONAS, TONES: TONES, PROACTIVITY: PROACTIVITY,
+    MATRIX_ACTIONS: MATRIX_ACTIONS, MATRIX_LEVELS: MATRIX_LEVELS, RECLAIM_RATE: RECLAIM_RATE,
+    fmt: fmt, leakById: leakById, computeTimeBack: computeTimeBack, ownerGate: ownerGate,
+    buildCharter: buildCharter, buildSystemPrompt: buildSystemPrompt, buildTimeLeakPlan: buildTimeLeakPlan,
+    buildStarterTasks: buildStarterTasks, buildStarterText: buildStarterText,
+    buildMorningBrief: buildMorningBrief, buildOwnerProfileText: buildOwnerProfileText,
+    buildMusePackage: buildMusePackage };
+}
+</script>
+
+<script>
+function el(id){ return document.getElementById(id); }
+function esc(s){ return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+/* Build the leak rows, persona and tone radios, and the matrix from the
+   core catalogs, so the page and the tested logic can never drift. */
+function buildInputs(){
+  el("leakList").innerHTML = LEAKS.map(function(l){
+    return '<div class="leak-row">' +
+      '<label><input type="checkbox" id="leak_' + l.id + '"> <span>' + esc(l.label) + ' <span class="desc">' + esc(l.desc) + '</span></span></label>' +
+      '<div class="leak-hours"><input type="number" id="hrs_' + l.id + '" min="0" max="60" step="0.5" value="' + l.def + '"> hrs/week</div></div>';
+  }).join("");
+  el("personaGroup").innerHTML = Object.keys(PERSONAS).map(function(k, i){
+    var p = PERSONAS[k];
+    return '<label><input type="radio" name="persona" value="' + k + '"' + (i === 0 ? " checked" : "") + '> <span>' + esc(p.name) + ' <span class="desc">' + esc(p.line) + '</span></span></label>';
+  }).join("");
+  el("toneGroup").innerHTML = Object.keys(TONES).map(function(k, i){
+    return '<label><input type="radio" name="tone" value="' + k + '"' + (i === 0 ? " checked" : "") + '> ' + esc(TONES[k].name) + '</label>';
+  }).join("");
+  el("proactivityGroup").innerHTML = Object.keys(PROACTIVITY).map(function(k, i){
+    return '<label><input type="radio" name="proactivity" value="' + k + '"' + (k === "routine" ? " checked" : "") + '> ' + esc(PROACTIVITY[k].name) + '</label>';
+  }).join("");
+  el("matrixList").innerHTML = MATRIX_ACTIONS.map(function(a){
+    var opts = Object.keys(MATRIX_LEVELS).map(function(lv){
+      return '<label><input type="radio" name="mx_' + a.id + '" value="' + lv + '"' + (lv === a.def ? " checked" : "") + '> ' + esc(MATRIX_LEVELS[lv]) + '</label>';
+    }).join("");
+    return '<div class="matrix-row"><div><div class="m-label">' + esc(a.label) + '</div><div class="m-desc">' + esc(a.desc) + '</div></div><div class="matrix-opts">' + opts + '</div></div>';
+  }).join("");
+}
+
+var SAMPLE = {
+  name: "Jordan Meyer",
+  role: "Founder and managing partner",
+  business: "Commercial real estate development, 38 staff",
+  agent: "Atlas",
+  priorities: "Close the Mesa industrial acquisition\nProtect two mornings a week for deep work\nFamily dinner at home four nights a week\nPrepare the Q1 investor update",
+  leaks: { inbox: 6, scheduling: 3, meetingprep: 4, followup: 3, travel: 2, research: 3 }
+};
+
+function loadSample(){
+  el("profileName").value = SAMPLE.name;
+  el("profileRole").value = SAMPLE.role;
+  el("businessType").value = SAMPLE.business;
+  el("agentName").value = SAMPLE.agent;
+  el("prioritiesText").value = SAMPLE.priorities;
+  LEAKS.forEach(function(l){
+    var on = Object.prototype.hasOwnProperty.call(SAMPLE.leaks, l.id);
+    el("leak_" + l.id).checked = on;
+    if (on) el("hrs_" + l.id).value = SAMPLE.leaks[l.id];
+  });
+  refreshAll();
+}
+
+function radioVal(name, fallback){
+  var rs = document.querySelectorAll("input[name=" + name + "]");
+  for (var i = 0; i < rs.length; i++) if (rs[i].checked) return rs[i].value;
+  return fallback;
+}
+
+function currentLeaks(){
+  var out = [];
+  LEAKS.forEach(function(l){
+    if (el("leak_" + l.id) && el("leak_" + l.id).checked) out.push({ id: l.id, hours: parseFloat(el("hrs_" + l.id).value) || 0 });
+  });
+  return out;
+}
+
+function currentMatrix(){
+  var m = {};
+  MATRIX_ACTIONS.forEach(function(a){ m[a.id] = radioVal("mx_" + a.id, a.def); });
+  return m;
+}
+
+function currentConfig(){
+  return {
+    ownerName: el("ownerName").value.trim() || el("profileName").value.trim(),
+    role: el("profileRole").value.trim(),
+    businessType: el("businessType").value.trim(),
+    agentName: el("agentName").value.trim() || "Atlas",
+    priorities: el("prioritiesText").value.split("\n").map(function(s){ return s.trim(); }).filter(function(s){ return s; }),
+    leaks: currentLeaks(),
+    persona: radioVal("persona", "chief"),
+    tone: radioVal("tone", "direct"),
+    proactivity: radioVal("proactivity", "routine"),
+    matrix: currentMatrix(),
+    rules: {
+      noSpend: el("ruleNoSpend").checked,
+      noExternal: el("ruleNoExternal").checked,
+      citeSources: el("ruleCite").checked,
+      escalateSensitive: el("ruleEscalate").checked
+    },
+    escalation: el("escalationText").value.trim() || "Message me directly with the decision needed."
+  };
+}
+
+function showErr(id, msg){
+  var e = el(id);
+  if (msg) { e.textContent = msg; e.style.display = "block"; }
+  else { e.style.display = "none"; }
+}
+
+function goStep(n){
+  [1,2,3,4].forEach(function(i){
+    el("panel" + i).classList.toggle("hidden", i !== n);
+    el("tab" + i).classList.toggle("active", i === n);
+    if (i < n) el("tab" + i).classList.add("done");
+  });
+  el("publishCard").classList.toggle("hidden", n !== 4);
+  if (n === 3 && !el("ownerName").value.trim() && el("profileName").value.trim()) el("ownerName").value = el("profileName").value.trim();
+  if (n === 4) refreshAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function step1Continue(){
+  if (!el("profileName").value.trim()) { showErr("err1", "Start with your name. The agent works for a person, not a job title."); return; }
+  if (!currentLeaks().length) { showErr("err1", "Tick at least one time leak. An agent with nothing to absorb is just a chatbot with a calendar."); return; }
+  showErr("err1", null);
+  goStep(2);
+}
+
+function step3Continue(){
+  if (!el("ownerName").value.trim()) { showErr("err3", "Name the accountable owner. Studio rule: no owner, no agent. A personal agent with no accountable human does not ship."); return; }
+  showErr("err3", null);
+  goStep(4);
+}
+
+function refreshTimeBack(){
+  var tb = computeTimeBack(currentLeaks());
+  var box = el("timeBackBox");
+  if (!tb.items.length) {
+    box.innerHTML = "<b>Time back estimate: nothing selected yet.</b><br>Tick the drains above and this box shows what a governed personal agent can plausibly hand back to you each week.";
+    return;
+  }
+  box.innerHTML = "<b>Time back estimate: about " + fmt(tb.reclaimed) + " hours per week</b>, roughly " + fmt(tb.perYear) + " hours a year.<br>" +
+    "Your selected drains total " + fmt(tb.totalHours) + " hours per week. The estimate assumes a conservative " + Math.round(RECLAIM_RATE * 100) + " percent reclaim rate on the work you hand over. Estimate only: your real number shows up in the agent's Friday report, measured against this plan.";
+}
+
+function refreshCharter(){
+  el("charterPreview").textContent = buildCharter(currentConfig());
+}
+
+function refreshGlance(){
+  var cfg = currentConfig();
+  var persona = PERSONAS[cfg.persona] || PERSONAS.chief;
+  var tb = computeTimeBack(cfg.leaks);
+  var rules = [];
+  if (cfg.rules.noSpend) rules.push("No spending without approval");
+  if (cfg.rules.noExternal) rules.push("No external messages without approval");
+  if (cfg.rules.citeSources) rules.push("Cite sources on research");
+  if (cfg.rules.escalateSensitive) rules.push("Escalate money, legal, health, family conflict");
+  var html = "";
+  html += '<div class="kv"><b>Agent:</b> ' + esc(cfg.agentName) + " (" + esc(persona.name) + ", " + esc((TONES[cfg.tone] || {}).name || "") + ")</div>";
+  html += '<div class="kv"><b>Accountable owner:</b> ' + esc(cfg.ownerName || "Not named yet, see Step 3") + "</div>";
+  html += '<div class="kv"><b>Proactivity:</b> ' + esc((PROACTIVITY[cfg.proactivity] || {}).name || "") + "</div>";
+  html += '<div class="kv"><b>Time back target:</b> about ' + fmt(tb.reclaimed) + " hrs per week from " + fmt(tb.totalHours) + " hrs of selected drains (estimate)</div>";
+  html += "<h3 style='margin-top:14px'>Approval matrix</h3><ul>" +
+    MATRIX_ACTIONS.map(function(a){ return "<li>" + esc(a.label) + ": " + esc(MATRIX_LEVELS[cfg.matrix[a.id]]) + "</li>"; }).join("") + "</ul>";
+  html += "<h3>Standing rules in force</h3><ul>" +
+    (rules.length ? rules.map(function(r){ return "<li>" + esc(r) + "</li>"; }).join("") : "<li>None set</li>") + "</ul>";
+  html += '<div class="kv"><b>Kill switch:</b> the owner can pause or delete this agent at any time</div>';
+  html += '<div class="kv"><b>Escalation:</b> ' + esc(cfg.escalation) + "</div>";
+  el("glancePanel").innerHTML = html;
+}
+
+function refreshBrief(){
+  el("briefPreview").textContent = buildMorningBrief(currentConfig());
+}
+
+function refreshFinalOutput(){
+  var cfg = currentConfig();
+  var pre = el("finalOutput");
+  var gate = ownerGate(cfg);
+  pre.textContent = gate.ok ? buildMusePackage(cfg) : gate.message;
+}
+
+function refreshAll(){
+  refreshTimeBack();
+  refreshCharter();
+  refreshGlance();
+  refreshBrief();
+  refreshFinalOutput();
+}
+
+function copyText(text, note){
+  function done(){ el("copyNote").textContent = note; setTimeout(function(){ el("copyNote").textContent = ""; }, 3500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else {
+    var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+    ta.select(); try { document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta); done();
+  }
+}
+
+function copyPackage(){
+  var cfg = currentConfig();
+  var gate = ownerGate(cfg);
+  if (!gate.ok) { el("copyNote").textContent = gate.message; return; }
+  copyText(buildMusePackage(cfg), "Final output copied. Now paste it into Muse to create your agent.");
+}
+
+buildInputs();
+document.addEventListener("input", refreshAll);
+document.addEventListener("change", refreshAll);
+refreshAll();
+</script>
+</body>
+</html>
