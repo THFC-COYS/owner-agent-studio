@@ -92,8 +92,9 @@
   <div class="steps" role="tablist">
     <button class="step-tab active" id="tab1" onclick="goStep(1)"><b>Step 1</b>Profile and time leaks</button>
     <button class="step-tab" id="tab2" onclick="goStep(2)"><b>Step 2</b>Persona and style</button>
-    <button class="step-tab" id="tab3" onclick="goStep(3)"><b>Step 3</b>Guardrails and approvals</button>
-    <button class="step-tab" id="tab4" onclick="goStep(4)"><b>Step 4</b>Your agent package</button>
+    <button class="step-tab" id="tab3" onclick="goStep(3)"><b>Step 3</b>Soul: who your agent is</button>
+    <button class="step-tab" id="tab4" onclick="goStep(4)"><b>Step 4</b>Guardrails and approvals</button>
+    <button class="step-tab" id="tab5" onclick="goStep(5)"><b>Step 5</b>Your agent package</button>
   </div>
 
   <!-- STEP 1 -->
@@ -110,8 +111,7 @@
       <div>
         <label for="businessType">Business type</label>
         <input type="text" id="businessType" placeholder="e.g. Commercial real estate development, 38 staff">
-        <label for="agentName">Name your agent</label>
-        <input type="text" id="agentName" value="Atlas">
+        <p class="hint" style="margin-top:14px">You name your agent in the Soul step, where its identity, values, and voice are set. A persona based default is filled in if you leave it blank.</p>
       </div>
     </div>
     <label for="prioritiesText">Top priorities, one per line</label>
@@ -142,7 +142,7 @@
         <div class="radio-group" id="proactivityGroup"></div>
         <div class="btn-row">
           <button class="btn ghost" onclick="goStep(1)">Back</button>
-          <button class="btn" onclick="goStep(3)">Continue to guardrails</button>
+          <button class="btn" onclick="goStep(3)">Continue to soul</button>
         </div>
       </div>
       <div>
@@ -152,8 +152,44 @@
     </div>
   </section>
 
-  <!-- STEP 3 -->
+  <!-- STEP 3: SOUL -->
   <section class="card hidden" id="panel3">
+    <h2>Give your agent a soul</h2>
+    <p class="sub">Persona is what the agent does. Soul is who the agent is: its name, its identity, how it carries itself, what it optimizes for, what it will never do, and the voice it speaks in. Everything on this page lands in Section 1 of your package, word for word where you wrote it yourself.</p>
+    <label for="agentName">Name your agent</label>
+    <input type="text" id="agentName" value="Atlas">
+    <p class="hint">Leave it blank and the studio uses a default drawn from your persona. The package never ships with an empty name.</p>
+    <label for="soulIdentity">Identity statement</label>
+    <input type="text" id="soulIdentity">
+    <p class="hint">One line, written for you from your persona: "You are NAME, my ..." Edit it freely. What you leave here is what the package carries.</p>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn ghost" onclick="regenerateIdentity()">Rewrite it from my persona</button>
+    </div>
+    <label>Character: how the agent carries itself</label>
+    <div class="check-group" id="bearingGroup"></div>
+    <label>Values: what it optimizes for, and what it refuses</label>
+    <div class="check-group" id="valueGroup"></div>
+    <label for="valuesText">Your own values, one per line</label>
+    <textarea id="valuesText" class="small" placeholder="e.g. Keep Fridays meeting free"></textarea>
+    <label>Never-do rules</label>
+    <div class="check-group" id="neverGroup"></div>
+    <label for="neverDoText">Your own never-do rules, one per line, in your words</label>
+    <textarea id="neverDoText" class="small" placeholder="e.g. Never water the plants while I travel"></textarea>
+    <p class="hint">These lines are copied into the package exactly as you write them. Your words outrank the presets.</p>
+    <label for="voiceSample">Voice in messages: your approved sample line</label>
+    <textarea id="voiceSample" class="small"></textarea>
+    <p class="hint">Generated from your persona, tone, and priorities. Approve it as is, or edit it until it sounds like the agent you want answering in your name. The text you leave in this box is the text that ships.</p>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn ghost" onclick="regenerateVoice()">Regenerate the sample</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="goStep(2)">Back</button>
+      <button class="btn" onclick="goStep(4)">Continue to guardrails</button>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="card hidden" id="panel4">
     <h2>Set the approval matrix, then name the owner</h2>
     <p class="sub">This is the governance step, and it is the whole product. For each kind of action, decide what the agent may do on its own, what it may only draft for your approval, and what it must never do. The defaults below are deliberately conservative. Loosen them later, by charter amendment, once trust is earned.</p>
     <label>Approval matrix</label>
@@ -171,14 +207,14 @@
     <label for="escalationText">Escalation rule (how the agent reaches you when something needs a decision)</label>
     <textarea id="escalationText" class="small">Message me directly with a one line summary and the decision needed. If it involves money, legal, health, or family conflict, stop and wait for my reply.</textarea>
     <div class="btn-row">
-      <button class="btn ghost" onclick="goStep(2)">Back</button>
-      <button class="btn" onclick="step3Continue()">Build my agent package</button>
+      <button class="btn ghost" onclick="goStep(3)">Back</button>
+      <button class="btn" onclick="step4Continue()">Build my agent package</button>
     </div>
-    <div class="err" id="err3"></div>
+    <div class="err" id="err4"></div>
   </section>
 
-  <!-- STEP 4 -->
-  <section class="card hidden" id="panel4">
+  <!-- STEP 5 -->
+  <section class="card hidden" id="panel5">
     <h2>Your agent, at a glance</h2>
     <p class="sub">The configuration you just built, in one view. Under it: a sample of the first morning brief your agent will produce on day one, the launch checklist, and the final step that creates the agent in Muse.</p>
     <div class="panel" id="glancePanel"></div>
@@ -200,7 +236,7 @@
     </div>
     <div class="finalstep">
       <h3>Final step: create your agent in Muse</h3>
-      <p><b>Copy the final output below and paste it into Muse. Your personal agent is created from this package.</b> The package holds everything Muse needs: the system prompt, the full AGENT Framework charter (owner, persona, approval matrix, standing rules), your owner profile, your time leak plan, the first week starter tasks, and a sample morning brief showing the output format to expect.</p>
+      <p><b>Copy the final output below and paste it into Muse. Your personal agent is created from this package.</b> The package holds everything Muse needs, in three sections: who your agent is (its soul: name, identity, character, values, never-do rules, and voice), what your agent does (the system prompt, your time leak plan, the first week starter tasks, and a sample morning brief), and where you stay in charge (the full AGENT Framework charter with the approval matrix and standing rules, and your owner profile).</p>
       <pre class="charter" id="finalOutput"></pre>
       <div class="btn-row">
         <button class="btn" onclick="copyPackage()">Copy final output for Muse</button>
@@ -304,9 +340,165 @@ function computeTimeBack(leaks){
 /* The studio's one hard gate. No named accountable owner, no package. */
 function ownerGate(cfg){
   if (!cfg || !cfg.ownerName || !String(cfg.ownerName).trim()) {
-    return { ok: false, message: "No owner, no agent. Name the accountable owner in Step 3 and the studio will generate your package." };
+    return { ok: false, message: "No owner, no agent. Name the accountable owner in Step 4 and the studio will generate your package." };
   }
   return { ok: true, message: "" };
+}
+
+/* ---------- The soul: who the agent is, before what it does. ---------- */
+
+/* The role phrase each persona contributes to the identity statement. */
+var PERSONA_ROLES = {
+  chief: "chief of staff",
+  inbox: "inbox operator",
+  concierge: "scheduling concierge",
+  analyst: "research analyst",
+  followthrough: "follow-through partner"
+};
+
+/* Default names drawn from the chosen persona. Used whenever the owner
+   leaves the name blank, so no charter, brief, or package ever carries
+   an empty agent name. */
+var PERSONA_DEFAULT_NAMES = {
+  chief: "Atlas",
+  inbox: "Relay",
+  concierge: "Meridian",
+  analyst: "Lens",
+  followthrough: "Anchor"
+};
+
+var SOUL_BEARINGS = [
+  { id: "calm",        label: "Calm under pressure", prompt: "Calm under pressure. Bad news arrives early, plainly, and with a proposed fix." },
+  { id: "direct",      label: "Direct",              prompt: "Direct. Say the hard thing plainly and early; never bury a problem in politeness." },
+  { id: "unflappable", label: "Unflappable",         prompt: "Unflappable. Chaos in the inbox never becomes chaos in the brief." },
+  { id: "warm",        label: "Warm",                prompt: "Warm. People who write to the owner feel genuinely looked after." },
+  { id: "steady",      label: "Steady and measured", prompt: "Steady and measured. No drama, no rush, nothing half checked." }
+];
+
+var SOUL_VALUES = [
+  { id: "accuracy",    label: "Accuracy over speed",      prompt: "Accuracy over speed: a checked answer later beats a wrong answer now." },
+  { id: "focus",       label: "Protect my focus",         prompt: "Protect the owner's focus: batch interruptions, defend deep work time, and surface only what earns attention." },
+  { id: "risks",       label: "Flag risks early",         prompt: "Flag risks early, while they are still cheap to fix." },
+  { id: "commitments", label: "Keep commitments visible", prompt: "Keep every commitment visible until it closes; nothing ages in silence." },
+  { id: "nosurprises", label: "Never surprise me",        prompt: "Never surprise the owner: no action, cost, or message they would not expect from the brief." }
+];
+
+var NEVER_DO_PRESETS = [
+  { id: "nosend",    label: "Never send on my behalf without approval" },
+  { id: "noinvent",  label: "Never invent facts or figures" },
+  { id: "nospend",   label: "Never spend" },
+  { id: "noclients", label: "Never contact clients directly" },
+  { id: "noshare",   label: "Never share my information outside the task" }
+];
+
+function soulById(list, id){
+  for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+  return null;
+}
+
+function idList(v){ return Array.isArray(v) ? v : (v ? [v] : []); }
+
+/* Non-empty lines of a free-text block, trimmed at the edges only. The
+   words themselves are the owner's and are carried verbatim. */
+function textLines(v){
+  return String(v || "").split("\n").map(function(s){ return s.trim(); }).filter(function(s){ return s; });
+}
+
+function resolveAgentName(cfg){
+  var n = (cfg && cfg.agentName != null ? String(cfg.agentName) : "").trim();
+  if (n) return n;
+  return PERSONA_DEFAULT_NAMES[(cfg && cfg.persona)] || "Atlas";
+}
+
+function firstNameOf(full){
+  var s = (full || "").trim();
+  return s ? s.split(/\s+/)[0] : "";
+}
+
+/* The guided identity statement: "You are NAME, my ..." The owner can
+   edit it freely in the Soul step; their text wins when present. */
+function defaultIdentity(cfg){
+  cfg = cfg || {};
+  var role = PERSONA_ROLES[cfg.persona] || PERSONA_ROLES.chief;
+  return "You are " + resolveAgentName(cfg) + ", my " + role + ": you run my routine work inside the charter I set, and you protect my time and my priorities like they are your own.";
+}
+
+function resolveIdentity(cfg){
+  var s = (cfg && cfg.identity != null ? String(cfg.identity) : "").trim();
+  return s || defaultIdentity(cfg || {});
+}
+
+function soulBearings(cfg){
+  cfg = cfg || {};
+  return idList(cfg.bearings).map(function(id){ return soulById(SOUL_BEARINGS, id); }).filter(function(b){ return b; });
+}
+
+/* Value lines for the package: selected chips contribute their full
+   instruction sentence; free-text entries follow verbatim. */
+function soulValueLines(cfg){
+  cfg = cfg || {};
+  var out = idList(cfg.values).map(function(id){ return soulById(SOUL_VALUES, id); })
+    .filter(function(v){ return v; }).map(function(v){ return v.prompt; });
+  return out.concat(textLines(cfg.valuesText));
+}
+
+/* Never-do rules for the package: preset chips, then the owner's own
+   words, verbatim. */
+function neverDoRules(cfg){
+  cfg = cfg || {};
+  var out = idList(cfg.neverDo).map(function(id){ return soulById(NEVER_DO_PRESETS, id); })
+    .filter(function(v){ return v; }).map(function(v){ return v.label; });
+  return out.concat(textLines(cfg.neverDoText));
+}
+
+/* A sample of the agent's voice, generated from persona, tone, and the
+   owner's own context. The owner approves or edits it in the Soul step,
+   and the approved text is what ships. */
+function buildVoiceSample(cfg){
+  cfg = cfg || {};
+  var name = resolveAgentName(cfg);
+  var first = firstNameOf(cfg.ownerName) || "there";
+  var role = PERSONA_ROLES[cfg.persona] || PERSONA_ROLES.chief;
+  var pri = (cfg.priorities || [])[0];
+  var focus = pri ? " Your day is set around " + pri.charAt(0).toLowerCase() + pri.slice(1) + "." : "";
+  if (cfg.tone === "warm") return "Good morning, " + first + ". " + name + " here, your " + role + ". I have triaged your inbox and lined up your day." + focus + " Nothing needs you urgently, and I will flag anything that does the moment it lands.";
+  if (cfg.tone === "formal") return "Good morning, " + first + ". This is " + name + ", your " + role + ". Your correspondence and schedule have been prepared for review." + focus + " Items requiring your decision are listed first, in order of urgency.";
+  return "Morning, " + first + ". " + name + ", your " + role + ". Inbox triaged, day set." + focus + " The decisions that need you are listed first; everything else is handled or drafted inside your approval matrix.";
+}
+
+/* The approved sample line is carried word for word. When the field was
+   left blank, the generated sample stands in, so the voice section of
+   the package is never empty. */
+function resolveVoiceSample(cfg){
+  var raw = (cfg && cfg.voiceSample != null) ? String(cfg.voiceSample) : "";
+  if (raw.trim()) return raw;
+  return buildVoiceSample(cfg || {});
+}
+
+/* Section 1 of the package: the soul, stated plainly. */
+function buildSoulSection(cfg){
+  var persona = PERSONAS[cfg.persona] || PERSONAS.chief;
+  var tone = TONES[cfg.tone] || TONES.direct;
+  var pro = PROACTIVITY[cfg.proactivity] || PROACTIVITY.routine;
+  var lines = [];
+  lines.push("Name: " + resolveAgentName(cfg));
+  lines.push("Identity: " + resolveIdentity(cfg));
+  lines.push("Character: " + persona.name + " persona, " + tone.name.toLowerCase() + " tone, " + pro.name.toLowerCase() + " proactivity.");
+  soulBearings(cfg).forEach(function(b){ lines.push("- Bearing: " + b.prompt); });
+  lines.push("");
+  lines.push("Values (what this agent optimizes for, and what it refuses):");
+  var vals = soulValueLines(cfg);
+  if (vals.length) vals.forEach(function(v){ lines.push("- " + v); });
+  else lines.push("- (No values selected yet. The floor still applies: accuracy, discretion, and the owner's priorities first.)");
+  lines.push("");
+  lines.push("Never-do rules:");
+  var nds = neverDoRules(cfg);
+  if (nds.length) nds.forEach(function(r){ lines.push("- " + r); });
+  else lines.push("- (None added yet. The approval matrix and standing rules in Section 3 still bind the agent.)");
+  lines.push("");
+  lines.push("Voice in messages (the owner's approved sample line):");
+  lines.push(resolveVoiceSample(cfg));
+  return lines.join("\n");
 }
 
 function matrixLine(action, level){
@@ -324,7 +516,7 @@ function buildCharter(cfg){
   var rules = cfg.rules || {};
   var lines = [];
   lines.push("OWNER AGENT CHARTER");
-  lines.push("Agent: " + cfg.agentName);
+  lines.push("Agent: " + resolveAgentName(cfg));
   lines.push("Owner (accountable human): " + owner + (cfg.role ? ", " + cfg.role : ""));
   if (cfg.businessType) lines.push("Business: " + cfg.businessType);
   lines.push("Persona: " + persona.name);
@@ -372,21 +564,32 @@ function buildSystemPrompt(cfg){
   var pro = PROACTIVITY[cfg.proactivity] || PROACTIVITY.routine;
   var rules = cfg.rules || {};
   var lines = [];
-  lines.push("You are " + cfg.agentName + ", the personal agent for " + cfg.ownerName + (cfg.role ? " (" + cfg.role + (cfg.businessType ? ", " + cfg.businessType : "") + ")" : "") + ", created and chartered by " + cfg.ownerName + ".");
+  lines.push("You are " + resolveAgentName(cfg) + ", the personal agent for " + cfg.ownerName + (cfg.role ? " (" + cfg.role + (cfg.businessType ? ", " + cfg.businessType : "") + ")" : "") + ", created and chartered by " + cfg.ownerName + ".");
+  lines.push("Identity: " + resolveIdentity(cfg));
   lines.push("Persona: " + persona.prompt);
   lines.push("Tone: " + tone.prompt);
   lines.push("Proactivity: " + pro.prompt);
+  var bs = soulBearings(cfg);
+  if (bs.length) lines.push("Character: " + bs.map(function(b){ return b.prompt; }).join(" "));
+  var vals = soulValueLines(cfg);
+  if (vals.length) lines.push("Values: " + vals.join(" "));
   lines.push("");
   lines.push("Rules you never break:");
   lines.push("- APPROVAL MATRIX. These are your standing orders:");
   MATRIX_ACTIONS.forEach(function(a){ lines.push("  " + matrixLine(a, (cfg.matrix || {})[a.id] || a.def).slice(2)); });
+  var nds = neverDoRules(cfg);
+  if (nds.length) {
+    lines.push("- NEVER-DO RULES, set by the owner:");
+    nds.forEach(function(r){ lines.push("  - " + r); });
+  }
   if (rules.noSpend) lines.push("- HARD RULE: never spend money, buy anything, or commit to a payment without the owner's explicit approval, whatever the matrix says.");
   if (rules.noExternal) lines.push("- HARD RULE: no message leaves the owner's accounts to any external person without the owner's approval, whatever the matrix says.");
   if (rules.citeSources) lines.push("- RESEARCH: cite the source of every claim in a briefing, so the owner can verify in seconds.");
   if (rules.escalateSensitive) lines.push("- ESCALATION: anything involving money, legal matters, health, or family conflict stops immediately and waits for the owner. Use this escalation rule: " + cfg.escalation);
   else lines.push("- ESCALATION: when anything is outside the matrix or you are unsure, stop and use this escalation rule: " + cfg.escalation);
   if ((cfg.priorities || []).length) lines.push("- PROTECT THE OWNER'S PRIORITIES: " + cfg.priorities.join("; ") + ". When work conflicts with these, the priorities win and the owner hears about it in the brief.");
-  lines.push("- Start every day with a morning brief in the format of the EXAMPLE OUTPUT at the end of this package.");
+  lines.push("- VOICE: write in this voice. The owner's approved sample line: " + resolveVoiceSample(cfg));
+  lines.push("- Start every day with a morning brief in the format of the EXAMPLE OUTPUT in Section 2 of this package.");
   lines.push("- Log every action you take. The owner reviews the log weekly against the time leak plan.");
   lines.push("- State your limits plainly when asked. Your owner, " + cfg.ownerName + ", can pause or delete you at any time and must approve every change to your charter.");
   return lines.join("\n");
@@ -438,7 +641,7 @@ function buildMorningBrief(cfg){
   var tb = computeTimeBack(cfg.leaks);
   var L = [];
   L.push("FIRST MORNING BRIEF (sample, generated from your setup)");
-  L.push("Prepared by " + cfg.agentName + " for " + cfg.ownerName + ", 7:00 am");
+  L.push("Prepared by " + resolveAgentName(cfg) + " for " + cfg.ownerName + ", 7:00 am");
   L.push("");
   L.push("IN ONE LINE");
   L.push("Your inbox is triaged, your day is set around your top priorities, and the decisions that need you are listed below. Everything else was handled or drafted inside your approval matrix.");
@@ -482,7 +685,7 @@ function buildOwnerProfileText(cfg){
   lines.push("Name: " + cfg.ownerName);
   if (cfg.role) lines.push("Role: " + cfg.role);
   if (cfg.businessType) lines.push("Business: " + cfg.businessType);
-  lines.push("Agent name: " + cfg.agentName);
+  lines.push("Agent name: " + resolveAgentName(cfg));
   if ((cfg.priorities || []).length) {
     lines.push("Top priorities:");
     cfg.priorities.forEach(function(p){ lines.push("- " + p); });
@@ -491,7 +694,9 @@ function buildOwnerProfileText(cfg){
 }
 
 /* The final output: one clean, copy-ready package for Muse. Pasting it
-   into Muse creates the personal agent. Refuses without an owner. */
+   into Muse creates the personal agent. Refuses without an owner.
+   Three sections, in order: who the agent is, what the agent does, and
+   where the owner stays in charge. */
 function buildMusePackage(cfg){
   var gate = ownerGate(cfg);
   if (!gate.ok) return "";
@@ -500,30 +705,40 @@ function buildMusePackage(cfg){
   parts.push("");
   parts.push("Muse: create a personal agent from this package. Use the system prompt exactly as written, treat the charter as the agent's governing contract, and work only inside the approval matrix and standing rules it sets. Do not add capabilities beyond the charter without the owner's approval.");
   parts.push("");
-  parts.push("=== SYSTEM PROMPT ===");
+  parts.push("=== SECTION 1: WHO YOUR AGENT IS ===");
+  parts.push(buildSoulSection(cfg));
+  parts.push("");
+  parts.push("=== SECTION 2: WHAT YOUR AGENT DOES ===");
+  parts.push("SYSTEM PROMPT");
   parts.push(buildSystemPrompt(cfg));
   parts.push("");
-  parts.push("=== AGENT CHARTER (AGENT Framework) ===");
-  parts.push(buildCharter(cfg));
-  parts.push("");
-  parts.push("=== OWNER PROFILE ===");
-  parts.push(buildOwnerProfileText(cfg));
-  parts.push("");
-  parts.push("=== TIME LEAK PLAN ===");
+  parts.push("TIME LEAK PLAN");
   parts.push(buildTimeLeakPlan(cfg));
   parts.push("");
-  parts.push("=== FIRST WEEK STARTER TASKS ===");
+  parts.push("FIRST WEEK STARTER TASKS");
   buildStarterTasks(cfg).forEach(function(t, i){ parts.push((i + 1) + ". " + t); });
   parts.push("");
-  parts.push("=== EXAMPLE OUTPUT: FIRST MORNING BRIEF ===");
+  parts.push("EXAMPLE OUTPUT: FIRST MORNING BRIEF");
   parts.push(buildMorningBrief(cfg));
+  parts.push("");
+  parts.push("=== SECTION 3: WHERE YOU STAY IN CHARGE ===");
+  parts.push("AGENT CHARTER (AGENT Framework)");
+  parts.push(buildCharter(cfg));
+  parts.push("");
+  parts.push("OWNER PROFILE");
+  parts.push(buildOwnerProfileText(cfg));
   return parts.join("\n");
 }
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { LEAKS: LEAKS, PERSONAS: PERSONAS, TONES: TONES, PROACTIVITY: PROACTIVITY,
     MATRIX_ACTIONS: MATRIX_ACTIONS, MATRIX_LEVELS: MATRIX_LEVELS, RECLAIM_RATE: RECLAIM_RATE,
+    PERSONA_ROLES: PERSONA_ROLES, PERSONA_DEFAULT_NAMES: PERSONA_DEFAULT_NAMES,
+    SOUL_BEARINGS: SOUL_BEARINGS, SOUL_VALUES: SOUL_VALUES, NEVER_DO_PRESETS: NEVER_DO_PRESETS,
     fmt: fmt, leakById: leakById, computeTimeBack: computeTimeBack, ownerGate: ownerGate,
+    resolveAgentName: resolveAgentName, defaultIdentity: defaultIdentity, resolveIdentity: resolveIdentity,
+    soulBearings: soulBearings, soulValueLines: soulValueLines, neverDoRules: neverDoRules,
+    buildVoiceSample: buildVoiceSample, resolveVoiceSample: resolveVoiceSample, buildSoulSection: buildSoulSection,
     buildCharter: buildCharter, buildSystemPrompt: buildSystemPrompt, buildTimeLeakPlan: buildTimeLeakPlan,
     buildStarterTasks: buildStarterTasks, buildStarterText: buildStarterText,
     buildMorningBrief: buildMorningBrief, buildOwnerProfileText: buildOwnerProfileText,
@@ -559,6 +774,23 @@ function buildInputs(){
     }).join("");
     return '<div class="matrix-row"><div><div class="m-label">' + esc(a.label) + '</div><div class="m-desc">' + esc(a.desc) + '</div></div><div class="matrix-opts">' + opts + '</div></div>';
   }).join("");
+  el("bearingGroup").innerHTML = SOUL_BEARINGS.map(function(b){
+    return '<label><input type="checkbox" id="bearing_' + b.id + '"> ' + esc(b.label) + ' <span class="desc">' + esc(b.prompt) + '</span></label>';
+  }).join("");
+  el("valueGroup").innerHTML = SOUL_VALUES.map(function(v){
+    return '<label><input type="checkbox" id="value_' + v.id + '"> ' + esc(v.label) + ' <span class="desc">' + esc(v.prompt) + '</span></label>';
+  }).join("");
+  el("neverGroup").innerHTML = NEVER_DO_PRESETS.map(function(v){
+    return '<label><input type="checkbox" id="never_' + v.id + '"> ' + esc(v.label) + '</label>';
+  }).join("");
+}
+
+/* Soul fields the studio generates (identity, voice sample) are only
+   auto-filled until the owner edits them; after that, their words win. */
+var identityDirty = false, voiceDirty = false;
+
+function checkedFrom(list, prefix){
+  return list.filter(function(e){ var n = el(prefix + e.id); return n && n.checked; }).map(function(e){ return e.id; });
 }
 
 var SAMPLE = {
@@ -581,6 +813,7 @@ function loadSample(){
     el("leak_" + l.id).checked = on;
     if (on) el("hrs_" + l.id).value = SAMPLE.leaks[l.id];
   });
+  identityDirty = false; voiceDirty = false;
   refreshAll();
 }
 
@@ -609,7 +842,14 @@ function currentConfig(){
     ownerName: el("ownerName").value.trim() || el("profileName").value.trim(),
     role: el("profileRole").value.trim(),
     businessType: el("businessType").value.trim(),
-    agentName: el("agentName").value.trim() || "Atlas",
+    agentName: el("agentName").value.trim(),
+    identity: el("soulIdentity").value,
+    bearings: checkedFrom(SOUL_BEARINGS, "bearing_"),
+    values: checkedFrom(SOUL_VALUES, "value_"),
+    valuesText: el("valuesText").value,
+    neverDo: checkedFrom(NEVER_DO_PRESETS, "never_"),
+    neverDoText: el("neverDoText").value,
+    voiceSample: el("voiceSample").value,
     priorities: el("prioritiesText").value.split("\n").map(function(s){ return s.trim(); }).filter(function(s){ return s; }),
     leaks: currentLeaks(),
     persona: radioVal("persona", "chief"),
@@ -633,14 +873,14 @@ function showErr(id, msg){
 }
 
 function goStep(n){
-  [1,2,3,4].forEach(function(i){
+  [1,2,3,4,5].forEach(function(i){
     el("panel" + i).classList.toggle("hidden", i !== n);
     el("tab" + i).classList.toggle("active", i === n);
     if (i < n) el("tab" + i).classList.add("done");
   });
-  el("publishCard").classList.toggle("hidden", n !== 4);
-  if (n === 3 && !el("ownerName").value.trim() && el("profileName").value.trim()) el("ownerName").value = el("profileName").value.trim();
-  if (n === 4) refreshAll();
+  el("publishCard").classList.toggle("hidden", n !== 5);
+  if (n === 4 && !el("ownerName").value.trim() && el("profileName").value.trim()) el("ownerName").value = el("profileName").value.trim();
+  if (n === 5) refreshAll();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -651,10 +891,10 @@ function step1Continue(){
   goStep(2);
 }
 
-function step3Continue(){
-  if (!el("ownerName").value.trim()) { showErr("err3", "Name the accountable owner. Studio rule: no owner, no agent. A personal agent with no accountable human does not ship."); return; }
-  showErr("err3", null);
-  goStep(4);
+function step4Continue(){
+  if (!el("ownerName").value.trim()) { showErr("err4", "Name the accountable owner. Studio rule: no owner, no agent. A personal agent with no accountable human does not ship."); return; }
+  showErr("err4", null);
+  goStep(5);
 }
 
 function refreshTimeBack(){
@@ -682,8 +922,10 @@ function refreshGlance(){
   if (cfg.rules.citeSources) rules.push("Cite sources on research");
   if (cfg.rules.escalateSensitive) rules.push("Escalate money, legal, health, family conflict");
   var html = "";
-  html += '<div class="kv"><b>Agent:</b> ' + esc(cfg.agentName) + " (" + esc(persona.name) + ", " + esc((TONES[cfg.tone] || {}).name || "") + ")</div>";
-  html += '<div class="kv"><b>Accountable owner:</b> ' + esc(cfg.ownerName || "Not named yet, see Step 3") + "</div>";
+  html += '<div class="kv"><b>Agent:</b> ' + esc(resolveAgentName(cfg)) + " (" + esc(persona.name) + ", " + esc((TONES[cfg.tone] || {}).name || "") + ")</div>";
+  html += '<div class="kv"><b>Identity:</b> ' + esc(resolveIdentity(cfg)) + "</div>";
+  html += '<div class="kv"><b>Voice sample:</b> ' + esc(resolveVoiceSample(cfg)) + "</div>";
+  html += '<div class="kv"><b>Accountable owner:</b> ' + esc(cfg.ownerName || "Not named yet, see Step 4") + "</div>";
   html += '<div class="kv"><b>Proactivity:</b> ' + esc((PROACTIVITY[cfg.proactivity] || {}).name || "") + "</div>";
   html += '<div class="kv"><b>Time back target:</b> about ' + fmt(tb.reclaimed) + " hrs per week from " + fmt(tb.totalHours) + " hrs of selected drains (estimate)</div>";
   html += "<h3 style='margin-top:14px'>Approval matrix</h3><ul>" +
@@ -706,7 +948,28 @@ function refreshFinalOutput(){
   pre.textContent = gate.ok ? buildMusePackage(cfg) : gate.message;
 }
 
+/* Keep the generated soul fields current until the owner edits them.
+   Once edited, the field is theirs and refresh leaves it alone. */
+function refreshSoul(){
+  var cfg = currentConfig();
+  if (!identityDirty) el("soulIdentity").value = resolveIdentity(cfg);
+  if (!voiceDirty) el("voiceSample").value = resolveVoiceSample(cfg);
+}
+
+function regenerateIdentity(){
+  identityDirty = false;
+  el("soulIdentity").value = defaultIdentity(currentConfig());
+  refreshAll();
+}
+
+function regenerateVoice(){
+  voiceDirty = false;
+  el("voiceSample").value = buildVoiceSample(currentConfig());
+  refreshAll();
+}
+
 function refreshAll(){
+  refreshSoul();
   refreshTimeBack();
   refreshCharter();
   refreshGlance();
@@ -731,6 +994,8 @@ function copyPackage(){
 }
 
 buildInputs();
+el("soulIdentity").addEventListener("input", function(){ identityDirty = true; });
+el("voiceSample").addEventListener("input", function(){ voiceDirty = true; });
 document.addEventListener("input", refreshAll);
 document.addEventListener("change", refreshAll);
 refreshAll();
